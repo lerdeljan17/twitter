@@ -64,7 +64,7 @@ public class TweeterController {
         }
     }
 
-    @GetMapping
+    @GetMapping(produces = "application/json")
     public ResponseEntity<?> getTweets(
             @RequestHeader("X-Username") String username,
             @RequestParam(value = "hashTag", required = false) List<String> hashTags,

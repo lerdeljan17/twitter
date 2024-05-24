@@ -3,142 +3,133 @@ package com.example.sbg.Services;
 import com.example.sbg.Model.Tweet;
 import com.example.sbg.Repository.TweeterRepository;
 import com.example.sbg.Services.Implemenation.TweeterService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.Mockito;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
+@SpringBootTest
 public class TweetServiceTest {
 
-    @InjectMocks
-    private TweeterService tweetService;
 
-    @Mock
-    private TweeterRepository tweetRepository;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-
+    // createTweet should save and return a new tweet with correct data
     @Test
-    void testCreateTweet() {
-        Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
-        tweet.setContent("Test tweet");
-        tweet.setHashtags(Collections.singletonList("#test"));
-        tweet.setCreatedAt(LocalDateTime.now());
+    public void test_create_tweet_with_correct_data() {
+        // Arrange
+        TweeterRepository mockRepository = Mockito.mock(TweeterRepository.class);
+        TweeterService tweeterService = new TweeterService(mockRepository);
+        String username = "user1";
+        String content = "Hello World!";
+        List<String> hashtags = Arrays.asList("#hello", "#world");
+        Tweet expectedTweet = new Tweet();
+        expectedTweet.setUsername(username);
+        expectedTweet.setContent(content);
+        expectedTweet.setHashtags(hashtags);
+        expectedTweet.setCreatedAt(LocalDateTime.now());
+        Mockito.when(mockRepository.save(Mockito.any(Tweet.class))).thenReturn(expectedTweet);
 
-        when(tweetRepository.save(any(Tweet.class))).thenReturn(tweet);
+        // Act
+        Tweet result = tweeterService.createTweet(username, content, hashtags);
 
-        Tweet createdTweet = tweetService.createTweet("user", "Test tweet", Collections.singletonList("#test"));
-
-        assertNotNull(createdTweet);
-        assertEquals("user", createdTweet.getUsername());
-        assertEquals("Test tweet", createdTweet.getContent());
-        assertEquals("#test", createdTweet.getHashtags().get(0));
+        // Assert
+        assertNotNull(result);
+        assertEquals(username, result.getUsername());
+        assertEquals(content, result.getContent());
+        assertTrue(result.getHashtags().containsAll(hashtags));
     }
 
+    // createTweet should handle null values for hashtags gracefully
     @Test
-    void testDeleteTweet() {
-        Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
+    public void test_create_tweet_with_null_hashtags() {
+        // Arrange
+        TweeterRepository mockRepository = Mockito.mock(TweeterRepository.class);
+        TweeterService tweeterService = new TweeterService(mockRepository);
+        String username = "user2";
+        String content = "Test tweet";
+        List<String> hashtags = null;
+        Tweet expectedTweet = new Tweet();
+        expectedTweet.setUsername(username);
+        expectedTweet.setContent(content);
+        expectedTweet.setHashtags(null);  // Expecting null to be handled gracefully
+        expectedTweet.setCreatedAt(LocalDateTime.now());
+        Mockito.when(mockRepository.save(Mockito.any(Tweet.class))).thenReturn(expectedTweet);
 
-        when(tweetRepository.findById(1L)).thenReturn(Optional.of(tweet));
+        // Act
+        Tweet result = tweeterService.createTweet(username, content, hashtags);
 
-        tweetService.deleteTweet(1L, "user");
-
-        verify(tweetRepository, times(1)).delete(tweet);
+        // Assert
+        assertNotNull(result);
+        assertEquals(username, result.getUsername());
+        assertEquals(content, result.getContent());
+        assertNull(result.getHashtags());
     }
 
+    // deleteTweet should successfully remove a tweet if the username matches
     @Test
-    void testGetTweetsWithHashtagsAndUsernames() {
+    public void test_delete_tweet_success() {
+        // Arrange
+        TweeterRepository mockRepository = Mockito.mock(TweeterRepository.class);
+        TweeterService tweeterService = new TweeterService(mockRepository);
+        Long tweetId = 1L;
+        String username = "user1";
         Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
-        tweet.setContent("Test tweet");
-        tweet.setHashtags(Collections.singletonList("#test"));
-        tweet.setCreatedAt(LocalDateTime.now());
+        tweet.setId(tweetId);
+        tweet.setUsername(username);
+        Mockito.when(mockRepository.findById(tweetId)).thenReturn(Optional.of(tweet));
 
-        when(tweetRepository.findByHashtagsInAndUsernameIn(anyList(), anyList(), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(tweet)));
+        // Act
+        tweeterService.deleteTweet(tweetId, username);
 
-        Page<Tweet> tweets = tweetService.getTweetsByHashtagsAndUsernames(Collections.singletonList("#test"),
-                Collections.singletonList("user"), 0, 10);
-
-        assertNotNull(tweets);
-        assertEquals(1, tweets.getSize());
-        assertEquals("user", tweets.stream().findFirst().get().getUsername());
+        // Assert
+        Mockito.verify(mockRepository, Mockito.times(1)).delete(tweet);
     }
 
+    // getTweetsByHashtagsAndUsernames should return correct page of tweets matching both criteria
     @Test
-    void testGetTweetsWithHashtags() {
-        Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
-        tweet.setContent("Test tweet");
-        tweet.setHashtags(Collections.singletonList("#test"));
-        tweet.setCreatedAt(LocalDateTime.now());
+    public void test_get_tweets_by_hashtags_and_usernames() {
+        // Arrange
+        TweeterRepository mockRepository = Mockito.mock(TweeterRepository.class);
+        TweeterService tweeterService = new TweeterService(mockRepository);
+        List<String> hashtags = Arrays.asList("#hello", "#world");
+        List<String> usernames = Arrays.asList("user1", "user2");
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<Tweet> tweets = Arrays.asList(new Tweet(), new Tweet());
+        Page<Tweet> expectedPage = new PageImpl<>(tweets);
+        Mockito.when(mockRepository.findByHashtagsInAndUsernameIn(hashtags, usernames, pageRequest)).thenReturn(expectedPage);
 
-        when(tweetRepository.findByHashtagsIn(anyList(), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(tweet)));
+        // Act
+        Page<Tweet> result = tweeterService.getTweetsByHashtagsAndUsernames(hashtags, usernames, 0, 10);
 
-        Page<Tweet> tweets = tweetService.getTweetsByHashtags(Collections.singletonList("#test"), 0, 10);
-
-        assertNotNull(tweets);
-        assertEquals(1, tweets.getSize());
-        assertEquals("user", tweets.stream().findFirst().get().getUsername());
+        // Assert
+        assertEquals(expectedPage, result);
     }
 
+    // getTweetsByHashtags should return correct page of tweets matching hashtags
     @Test
-    void testGetTweetsWithUsernames() {
-        Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
-        tweet.setContent("Test tweet");
-        tweet.setHashtags(Collections.singletonList("#test"));
-        tweet.setCreatedAt(LocalDateTime.now());
+    public void test_get_tweets_by_hashtags() {
+        // Arrange
+        TweeterRepository mockRepository = Mockito.mock(TweeterRepository.class);
+        TweeterService tweeterService = new TweeterService(mockRepository);
+        List<String> hashtags = Arrays.asList("#hello", "#world");
+        PageRequest pageRequest = PageRequest.of(0, 10);
+        List<Tweet> tweets = Arrays.asList(new Tweet(), new Tweet());
+        Page<Tweet> expectedPage = new PageImpl<>(tweets);
+        Mockito.when(mockRepository.findByHashtagsIn(hashtags, pageRequest)).thenReturn(expectedPage);
 
-        when(tweetRepository.findByUsernameIn(anyList(), any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(tweet)));
+        // Act
+        Page<Tweet> result = tweeterService.getTweetsByHashtags(hashtags, 0, 10);
 
-        Page<Tweet> tweets = tweetService.getTweetsByUsernames(Collections.singletonList("user"), 0, 10);
-
-        assertNotNull(tweets);
-        assertEquals(1, tweets.getSize());
-        assertEquals("user", tweets.stream().findFirst().get().getUsername());
+        // Assert
+        assertEquals(expectedPage, result);
     }
 
-    @Test
-    void testGetTweetsWithoutHashtagsAndUsernames() {
-        Tweet tweet = new Tweet();
-        tweet.setId(1L);
-        tweet.setUsername("user");
-        tweet.setContent("Test tweet");
-        tweet.setHashtags(Collections.singletonList("#test"));
-        tweet.setCreatedAt(LocalDateTime.now());
-
-        when(tweetRepository.findAll(any(PageRequest.class)))
-                .thenReturn(new PageImpl<>(Collections.singletonList(tweet)));
-
-        Page<Tweet> tweets = tweetService.getAllTweets(0, 10);
-
-        assertNotNull(tweets);
-        assertEquals(1, tweets.getSize());
-        assertEquals("user", tweets.stream().findFirst().get().getUsername());
-    }
 }

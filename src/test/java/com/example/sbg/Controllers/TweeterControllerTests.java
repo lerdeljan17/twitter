@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import java.time.LocalDateTime;
 import java.util.Collections;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -22,10 +23,19 @@ public class TweeterControllerTests {
 
     @Test
     public void test_return_tweets_no_filters() {
+
         // Arrange
+
+        Tweet tweet = new Tweet();
+        tweet.setId(1L);
+        tweet.setUsername("user");
+        tweet.setContent("Test tweet");
+        tweet.setHashtags(Collections.singletonList("#test"));
+        tweet.setCreatedAt(LocalDateTime.now());
+
         ITweeterService tweeterService = Mockito.mock(ITweeterService.class);
         TweeterController controller = new TweeterController(tweeterService);
-        Page<Tweet> page = new PageImpl<>(Collections.singletonList(new Tweet()));
+        Page<Tweet> page = new PageImpl<>(Collections.singletonList(tweet));
         Mockito.when(tweeterService.getAllTweets(0, 50)).thenReturn(page);
 
         // Act
