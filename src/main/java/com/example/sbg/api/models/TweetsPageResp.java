@@ -13,4 +13,9 @@ public class TweetsPageResp {
         this.tweets = tweets;
         this.nextPage = nextPage;
     }
+
+    public static String createNextPageUrl(int offset, int limit) {
+        int nextPageOffset = offset + limit;
+        return String.format("https://api.sb-tweets.test/v1/tweets?limit=%d&offset=%d", limit, nextPageOffset);
+    }
 }

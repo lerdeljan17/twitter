@@ -1,18 +1,22 @@
-package com.example.sbg.Controllers;
+package com.example.sbg.controllers;
 
 import com.example.sbg.api.models.Error;
-import com.example.sbg.Model.Tweet;
-import com.example.sbg.Services.ITweeterService;
 import com.example.sbg.api.models.PostTweetReq;
 import com.example.sbg.api.models.TweetResp;
 import com.example.sbg.api.models.TweetsPageResp;
-import org.springframework.data.domain.Page;
+import com.example.sbg.mappers.TweetMapper;
+import com.example.sbg.model.Tweet;
+import com.example.sbg.services.ITweeterService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/tweets")
@@ -25,7 +29,7 @@ public class TweeterController {
     }
 
     @PostMapping
-    public ResponseEntity<?> createTweet(
+    public ResponseEntity createTweet(
             @RequestHeader("X-Username") String username,
             @RequestBody PostTweetReq postTweetReq) {
 
@@ -35,18 +39,14 @@ public class TweeterController {
         }
 
         Tweet tweet = tweeterService.createTweet(username, postTweetReq.getTweetBody(), postTweetReq.getHashTags());
-        TweetResp tweetResp = new TweetResp(
-                tweet.getId().toString(),
-                tweet.getContent(),
-                tweet.getHashtags(),
-                tweet.getCreatedBy(),
-                tweet.getCreatedAt().toString());
+
+        var tweetResp = TweetMapper.toTweetResp(tweet);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(tweetResp);
     }
 
     @DeleteMapping("/{tweetId}")
-    public ResponseEntity<?> deleteTweet(
+    public ResponseEntity deleteTweet(
             @RequestHeader("X-Username") String username,
             @PathVariable String tweetId) {
 
@@ -64,6 +64,21 @@ public class TweeterController {
         }
     }
 
+    @Operation(summary = "Get Tweets", description = "Retrieve a list of tweets based on the provided parameters.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successful retrieval of tweets",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = TweetsPageResp.class))),
+            @ApiResponse(responseCode = "400", description = "Bad request",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Error.class))),
+            @ApiResponse(responseCode = "401", description = "Unauthorized",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Error.class))),
+            @ApiResponse(responseCode = "412", description = "Precondition Failed",
+                    content = @Content(mediaType = "application/json",
+                            schema = @Schema(implementation = Error.class))),
+    })
     @GetMapping(produces = "application/json")
     public ResponseEntity<?> getTweets(
             @RequestHeader("X-Username") String username,
@@ -99,7 +114,7 @@ public class TweeterController {
             }
         }
 
-        Page<Tweet> tweetPage;
+        TweetsPageResp tweetPage;
 
         if (hashTags != null && !hashTags.isEmpty() && usernames != null && !usernames.isEmpty()) {
             tweetPage = tweeterService.getTweetsByHashtagsAndUsernames(hashTags, usernames, offset, limit);
@@ -111,23 +126,8 @@ public class TweeterController {
             tweetPage = tweeterService.getAllTweets(offset, limit);
         }
 
-        List<TweetResp> tweetResponses = tweetPage.stream()
-                .map(tweet -> new TweetResp(
-                        tweet.getId().toString(),
-                        tweet.getContent(),
-                        tweet.getHashtags(),
-                        tweet.getCreatedBy(),
-                        tweet.getCreatedAt().toString()))
-                .collect(Collectors.toList());
-
-        TweetsPageResp tweetsPageResp = new TweetsPageResp(tweetResponses,
-                tweetPage.hasNext() ? createNextPageUrl(offset, limit) : null);
-
-        return ResponseEntity.ok(tweetsPageResp);
+        return ResponseEntity.ok(tweetPage);
     }
 
-    private String createNextPageUrl(int offset, int limit) {
-        int nextPageOffset = offset + limit;
-        return String.format("https://api.sb-tweets.test/v1/tweets?limit=%d&offset=%d", limit, nextPageOffset);
-    }
+
 }

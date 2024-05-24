@@ -1,6 +1,6 @@
-package com.example.sbg.Repository;
+package com.example.sbg.repository;
 
-import com.example.sbg.Model.Tweet;
+import com.example.sbg.model.Tweet;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;

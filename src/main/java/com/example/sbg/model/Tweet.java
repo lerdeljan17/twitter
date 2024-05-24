@@ -1,4 +1,4 @@
-package com.example.sbg.Model;
+package com.example.sbg.model;
 
 
 import jakarta.persistence.*;
