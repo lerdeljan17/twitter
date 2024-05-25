@@ -2,6 +2,8 @@ package com.example.sbg.services.implementation;
 
 import com.example.sbg.api.models.TweetResp;
 import com.example.sbg.api.models.TweetsPageResp;
+import com.example.sbg.exceptions.BadRequestException;
+import com.example.sbg.exceptions.ResourceNotFoundException;
 import com.example.sbg.mappers.TweetMapper;
 import com.example.sbg.model.Tweet;
 import com.example.sbg.repository.TweeterRepository;
@@ -22,18 +24,28 @@ public class TweeterService implements ITweeterService {
     }
 
     public Tweet createTweet(String username, String content, List<String> hashtags) {
+
+        if (hashtags != null) {
+            for (String tag : hashtags) {
+                if (!tag.matches("^#[a-zA-Z0-9_]*$")) {
+                    throw new BadRequestException("Invalid hash tag: " + tag);
+                }
+            }
+        }
+
         Tweet tweet = new Tweet();
         tweet.setUsername(username);
         tweet.setContent(content);
         tweet.setHashtags(hashtags);
         tweet.setCreatedAt(LocalDateTime.now());
+
         return tweeterRepository.save(tweet);
     }
 
     public void deleteTweet(Long id, String username) {
         Tweet tweet = tweeterRepository.findById(id).orElseThrow(() -> new RuntimeException("Tweet not found"));
         if (!tweet.getUsername().equals(username)) {
-            throw new RuntimeException("Unauthorized");
+            throw new ResourceNotFoundException("You are not authorized to delete this tweet");
         }
         tweeterRepository.delete(tweet);
     }
@@ -53,7 +65,7 @@ public class TweeterService implements ITweeterService {
 
     @Override
     public TweetsPageResp getTweetsByHashtags(List<String> hashtags, int pageNumber, int pageSize) {
-        var tweetPage =  tweeterRepository.findByHashtagsIn(hashtags, PageRequest.of(pageNumber, pageSize));
+        var tweetPage = tweeterRepository.findByHashtagsIn(hashtags, PageRequest.of(pageNumber, pageSize));
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
@@ -65,7 +77,7 @@ public class TweeterService implements ITweeterService {
 
     @Override
     public TweetsPageResp getTweetsByUsernames(List<String> usernames, int pageNumber, int pageSize) {
-        var tweetPage =  tweeterRepository.findByUsernameIn(usernames, PageRequest.of(pageNumber, pageSize));
+        var tweetPage = tweeterRepository.findByUsernameIn(usernames, PageRequest.of(pageNumber, pageSize));
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
@@ -77,7 +89,7 @@ public class TweeterService implements ITweeterService {
 
     @Override
     public TweetsPageResp getAllTweets(int pageNumber, int pageSize) {
-        var tweetPage =  tweeterRepository.findAll(PageRequest.of(pageNumber, pageSize));
+        var tweetPage = tweeterRepository.findAll(PageRequest.of(pageNumber, pageSize));
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 

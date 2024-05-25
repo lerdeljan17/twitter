@@ -3,6 +3,7 @@ package com.example.sbg.controllers;
 import com.example.sbg.api.models.Error;
 import com.example.sbg.api.models.PostTweetReq;
 import com.example.sbg.api.models.TweetsPageResp;
+import com.example.sbg.exceptions.BadRequestException;
 import com.example.sbg.mappers.TweetMapper;
 import com.example.sbg.model.Tweet;
 import com.example.sbg.services.ITweeterService;
@@ -33,8 +34,9 @@ public class TweeterController {
             @RequestBody PostTweetReq postTweetReq) {
 
         if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new Error(401, 101, "Username header is missing."));
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new Error(401, 101, "Username header is missing."));
+            throw new BadRequestException("Username header is missing.");
         }
 
         Tweet tweet = tweeterService.createTweet(username, postTweetReq.getTweetBody(), postTweetReq.getHashTags());
@@ -50,17 +52,15 @@ public class TweeterController {
             @PathVariable String tweetId) {
 
         if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new Error(401, 101, "Username header is missing."));
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new Error(401, 101, "Username header is missing."));
+            throw new BadRequestException("Username header is missing.");
         }
 
-        try {
-            tweeterService.deleteTweet(Long.parseLong(tweetId), username);
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                    .body(new Error(403, 102, e.getMessage()));
-        }
+
+        tweeterService.deleteTweet(Long.parseLong(tweetId), username);
+        return ResponseEntity.ok().build();
+
     }
 
     @Operation(summary = "Get Tweets", description = "Retrieve a list of tweets based on the provided parameters.")
@@ -87,28 +87,32 @@ public class TweeterController {
             @RequestParam(value = "offset", defaultValue = "0") int offset) {
 
         if (username == null || username.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new Error(401, 101, "Username header is missing."));
+//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+//                    .body(new Error(401, 101, "Username header is missing."));
+            throw new BadRequestException("Username header is missing.");
         }
 
         if (limit < 1 || limit > 100 || offset < 0) {
-            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-                    .body(new Error(412, 103, "Limit or offset parameters are out of range."));
+//            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
+//                    .body(new Error(412, 103, "Limit or offset parameters are out of range."));
+            throw new BadRequestException("Limit or offset parameters are out of range.");
         }
 
         if (hashTags != null) {
             for (String tag : hashTags) {
                 if (!tag.matches("^#[a-zA-Z0-9_]*$")) {
-                    return ResponseEntity.badRequest()
-                            .body(new Error(400, 104, "Invalid hashTag parameter."));
+//                    return ResponseEntity.badRequest()
+//                            .body(new Error(400, 104, "Invalid hashTag parameter."));
+                    throw new BadRequestException("Invalid hash tag: " + tag);
                 }
             }
         }
         if (usernames != null) {
             for (String name : usernames) {
                 if (!name.matches("^[a-zA-Z0-9_]*$")) {
-                    return ResponseEntity.badRequest()
-                            .body(new Error(400, 105, "Invalid username parameter."));
+//                    return ResponseEntity.badRequest()
+//                            .body(new Error(400, 105, "Invalid username parameter."));
+                    throw new BadRequestException("Invalid username: " + name);
                 }
             }
         }
