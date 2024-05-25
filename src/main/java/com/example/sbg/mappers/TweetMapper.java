@@ -14,7 +14,7 @@ public class TweetMapper {
                 tweet.getId().toString(),
                 tweet.getContent(),
                 tweet.getHashtags(),
-                tweet.getCreatedBy(),
+                tweet.getUsername(),
                 tweet.getCreatedAt().toString()
         );
     }
@@ -24,7 +24,7 @@ public class TweetMapper {
         tweet.setContent(postTweetReq.getTweetBody());
         tweet.setHashtags(postTweetReq.getHashTags());
         tweet.setCreatedAt(LocalDateTime.now());
-        tweet.setCreatedBy(username);
+        tweet.setUsername(username);
         tweet.setUsername(username);
         return tweet;
     }

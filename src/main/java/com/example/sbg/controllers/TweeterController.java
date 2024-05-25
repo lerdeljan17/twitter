@@ -2,7 +2,6 @@ package com.example.sbg.controllers;
 
 import com.example.sbg.api.models.Error;
 import com.example.sbg.api.models.PostTweetReq;
-import com.example.sbg.api.models.TweetResp;
 import com.example.sbg.api.models.TweetsPageResp;
 import com.example.sbg.mappers.TweetMapper;
 import com.example.sbg.model.Tweet;
@@ -28,7 +27,7 @@ public class TweeterController {
         this.tweeterService = tweeterService;
     }
 
-    @PostMapping
+    @PostMapping(produces = "application/json", path = "createTweet")
     public ResponseEntity createTweet(
             @RequestHeader("X-Username") String username,
             @RequestBody PostTweetReq postTweetReq) {
@@ -52,15 +51,15 @@ public class TweeterController {
 
         if (username == null || username.isEmpty()) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-                    .body(new Error(401, 1001, "Username header is missing."));
+                    .body(new Error(401, 101, "Username header is missing."));
         }
 
         try {
             tweeterService.deleteTweet(Long.parseLong(tweetId), username);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND)
-                    .body(new Error(404, 1002, "Tweet not found."));
+            return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                    .body(new Error(403, 102, e.getMessage()));
         }
     }
 
@@ -80,7 +79,7 @@ public class TweeterController {
                             schema = @Schema(implementation = Error.class))),
     })
     @GetMapping(produces = "application/json")
-    public ResponseEntity<?> getTweets(
+    public ResponseEntity getTweets(
             @RequestHeader("X-Username") String username,
             @RequestParam(value = "hashTag", required = false) List<String> hashTags,
             @RequestParam(value = "usernames", required = false) List<String> usernames,
@@ -94,14 +93,14 @@ public class TweeterController {
 
         if (limit < 1 || limit > 100 || offset < 0) {
             return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-                    .body(new Error(412, 1003, "Limit or offset parameters are out of range."));
+                    .body(new Error(412, 103, "Limit or offset parameters are out of range."));
         }
 
         if (hashTags != null) {
             for (String tag : hashTags) {
-                if (!tag.matches("^[a-zA-Z0-9_]*$")) {
+                if (!tag.matches("^#[a-zA-Z0-9_]*$")) {
                     return ResponseEntity.badRequest()
-                            .body(new Error(400, 1004, "Invalid hashTag parameter."));
+                            .body(new Error(400, 104, "Invalid hashTag parameter."));
                 }
             }
         }
@@ -109,7 +108,7 @@ public class TweeterController {
             for (String name : usernames) {
                 if (!name.matches("^[a-zA-Z0-9_]*$")) {
                     return ResponseEntity.badRequest()
-                            .body(new Error(400, 1005, "Invalid username parameter."));
+                            .body(new Error(400, 105, "Invalid username parameter."));
                 }
             }
         }

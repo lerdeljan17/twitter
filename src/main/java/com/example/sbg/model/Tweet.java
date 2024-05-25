@@ -32,9 +32,6 @@ public class Tweet {
     @Column(nullable = false)
     private LocalDateTime createdAt;
 
-    @Column(nullable = false)
-    private String createdBy;
-
     // Getters and Setters
 
     @Override
