@@ -6,6 +6,7 @@ import com.example.sbg.api.models.TweetsPageResp;
 import com.example.sbg.mappers.TweetMapper;
 import com.example.sbg.model.Tweet;
 import com.example.sbg.services.ITweeterService;
+import com.example.sbg.services.rabbitMQServices.ProducerService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -22,12 +23,14 @@ import java.util.List;
 public class TweeterController {
 
     private final ITweeterService tweeterService;
+    private final ProducerService producerService;
 
-    public TweeterController(ITweeterService tweeterService) {
+    public TweeterController(ITweeterService tweeterService, ProducerService producerService) {
         this.tweeterService = tweeterService;
+        this.producerService = producerService;
     }
 
-    @PostMapping(produces = "application/json", path = "createTweet")
+    @PostMapping(produces = "application/json")
     public ResponseEntity createTweet(
             @RequestHeader("X-Username") String username,
             @RequestBody PostTweetReq postTweetReq) {
@@ -36,6 +39,8 @@ public class TweeterController {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(new Error(401, 101, "Username header is missing."));
         }
+
+        producerService.sendTweet(postTweetReq);
 
         Tweet tweet = tweeterService.createTweet(username, postTweetReq.getTweetBody(), postTweetReq.getHashTags());
 
