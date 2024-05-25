@@ -29,7 +29,7 @@ public class TweeterController {
         this.tweeterService = tweeterService;
     }
 
-    @PostMapping(produces = "application/json", path = "createTweet")
+    @PostMapping(produces = "application/json")
     public ResponseEntity<TweetResp> createTweet(@RequestHeader("X-Username") String username,
                                                  @RequestBody PostTweetReq postTweetReq) {
 

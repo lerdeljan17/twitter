@@ -27,6 +27,10 @@ public class TweeterService implements ITweeterService {
     public Tweet createTweet(String username, String content, List<String> hashtags) {
 
         if (hashtags != null) {
+
+            if (hashtags.size() > 5)
+                throw new BadRequestException("Too many hash tags");
+
             for (String tag : hashtags) {
                 if (!tag.matches("^#[a-zA-Z0-9_]*$")) {
                     throw new BadRequestException("Invalid hash tag: " + tag);
