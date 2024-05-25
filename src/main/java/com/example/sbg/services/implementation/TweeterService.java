@@ -12,6 +12,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -57,10 +58,8 @@ public class TweeterService implements ITweeterService {
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
-        TweetsPageResp tweetsPageResp = new TweetsPageResp(tweetResponses,
-                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize) : null);
-
-        return tweetsPageResp;
+        return new TweetsPageResp(tweetResponses,
+                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize, hashtags, usernames) : null);
     }
 
     @Override
@@ -69,10 +68,8 @@ public class TweeterService implements ITweeterService {
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
-        TweetsPageResp tweetsPageResp = new TweetsPageResp(tweetResponses,
-                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize) : null);
-
-        return tweetsPageResp;
+        return new TweetsPageResp(tweetResponses,
+                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize, hashtags, Collections.emptyList()) : null);
     }
 
     @Override
@@ -81,10 +78,8 @@ public class TweeterService implements ITweeterService {
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
-        TweetsPageResp tweetsPageResp = new TweetsPageResp(tweetResponses,
-                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize) : null);
-
-        return tweetsPageResp;
+        return new TweetsPageResp(tweetResponses,
+                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize, Collections.emptyList(), usernames) : null);
     }
 
     @Override
@@ -93,10 +88,8 @@ public class TweeterService implements ITweeterService {
 
         List<TweetResp> tweetResponses = TweetMapper.toTweetRespList(tweetPage.getContent());
 
-        TweetsPageResp tweetsPageResp = new TweetsPageResp(tweetResponses,
-                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize) : null);
-
-        return tweetsPageResp;
+        return new TweetsPageResp(tweetResponses,
+                tweetPage.hasNext() ? TweetsPageResp.createNextPageUrl(pageNumber, pageSize, Collections.emptyList(), Collections.emptyList()) : null);
     }
 }
 

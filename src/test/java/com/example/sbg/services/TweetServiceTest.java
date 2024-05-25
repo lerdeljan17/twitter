@@ -14,10 +14,10 @@ import org.springframework.data.domain.PageRequest;
 
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import static com.example.sbg.api.models.TweetsPageResp.createNextPageUrl;
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -120,7 +120,7 @@ public class TweetServiceTest {
         var expectedResult = TweetMapper.toTweetRespList(expectedPage.getContent());
 
         TweetsPageResp tweetsPageRespExp = new TweetsPageResp(expectedResult,
-                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10) : null);
+                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10, hashtags, usernames) : null);
 
         // Act
         TweetsPageResp result = tweeterService.getTweetsByHashtagsAndUsernames(hashtags, usernames, 0, 10);
@@ -151,7 +151,7 @@ public class TweetServiceTest {
         var expectedResult = TweetMapper.toTweetRespList(expectedPage.getContent());
 
         TweetsPageResp tweetsPageRespExp = new TweetsPageResp(expectedResult,
-                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10) : null);
+                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10, hashtags, Collections.emptyList()) : null);
 
         // Act
         TweetsPageResp result = tweeterService.getTweetsByHashtags(hashtags, 0, 10);
@@ -182,12 +182,11 @@ public class TweetServiceTest {
         var expectedResult = TweetMapper.toTweetRespList(expectedPage.getContent());
 
         TweetsPageResp tweetsPageRespExp = new TweetsPageResp(expectedResult,
-                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10) : null);
+                expectedPage.hasNext() ? TweetsPageResp.createNextPageUrl(0, 10, Collections.emptyList(), usernames) : null);
         // Act
         TweetsPageResp result = tweeterService.getTweetsByUsernames(usernames, 0, 10);
 
         // Assert
         assertEquals(tweetsPageRespExp, result);
     }
-
 }

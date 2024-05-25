@@ -58,7 +58,12 @@ public class TweeterController {
     @Operation(summary = "Get Tweets", description = "Retrieve a list of tweets based on the provided parameters.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successful retrieval of tweets", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TweetsPageResp.class))), @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "412", description = "Precondition Failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))),})
     @GetMapping(produces = "application/json")
-    public ResponseEntity getTweets(@RequestHeader("X-Username") String username, @RequestParam(value = "hashTag", required = false) List<String> hashTags, @RequestParam(value = "usernames", required = false) List<String> usernames, @RequestParam(value = "limit", defaultValue = "50") int limit, @RequestParam(value = "offset", defaultValue = "0") int offset) {
+    public ResponseEntity getTweets(
+            @RequestHeader("X-Username") String username,
+            @RequestParam(value = "hashTag", required = false) List<String> hashTags,
+            @RequestParam(value = "usernames", required = false) List<String> usernames,
+            @RequestParam(value = "limit", defaultValue = "50") int limit,
+            @RequestParam(value = "offset", defaultValue = "0") int offset) {
 
         if (username == null || username.isEmpty()) {
             throw new BadRequestException("Username header is missing.");
