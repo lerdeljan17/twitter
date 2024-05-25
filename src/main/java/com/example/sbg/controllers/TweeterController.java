@@ -29,13 +29,9 @@ public class TweeterController {
     }
 
     @PostMapping(produces = "application/json", path = "createTweet")
-    public ResponseEntity createTweet(
-            @RequestHeader("X-Username") String username,
-            @RequestBody PostTweetReq postTweetReq) {
+    public ResponseEntity createTweet(@RequestHeader("X-Username") String username, @RequestBody PostTweetReq postTweetReq) {
 
         if (username == null || username.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(new Error(401, 101, "Username header is missing."));
             throw new BadRequestException("Username header is missing.");
         }
 
@@ -47,13 +43,9 @@ public class TweeterController {
     }
 
     @DeleteMapping("/{tweetId}")
-    public ResponseEntity deleteTweet(
-            @RequestHeader("X-Username") String username,
-            @PathVariable String tweetId) {
+    public ResponseEntity deleteTweet(@RequestHeader("X-Username") String username, @PathVariable String tweetId) {
 
         if (username == null || username.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(new Error(401, 101, "Username header is missing."));
             throw new BadRequestException("Username header is missing.");
         }
 
@@ -64,45 +56,21 @@ public class TweeterController {
     }
 
     @Operation(summary = "Get Tweets", description = "Retrieve a list of tweets based on the provided parameters.")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Successful retrieval of tweets",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = TweetsPageResp.class))),
-            @ApiResponse(responseCode = "400", description = "Bad request",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Error.class))),
-            @ApiResponse(responseCode = "401", description = "Unauthorized",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Error.class))),
-            @ApiResponse(responseCode = "412", description = "Precondition Failed",
-                    content = @Content(mediaType = "application/json",
-                            schema = @Schema(implementation = Error.class))),
-    })
+    @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successful retrieval of tweets", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TweetsPageResp.class))), @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "412", description = "Precondition Failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))),})
     @GetMapping(produces = "application/json")
-    public ResponseEntity getTweets(
-            @RequestHeader("X-Username") String username,
-            @RequestParam(value = "hashTag", required = false) List<String> hashTags,
-            @RequestParam(value = "usernames", required = false) List<String> usernames,
-            @RequestParam(value = "limit", defaultValue = "50") int limit,
-            @RequestParam(value = "offset", defaultValue = "0") int offset) {
+    public ResponseEntity getTweets(@RequestHeader("X-Username") String username, @RequestParam(value = "hashTag", required = false) List<String> hashTags, @RequestParam(value = "usernames", required = false) List<String> usernames, @RequestParam(value = "limit", defaultValue = "50") int limit, @RequestParam(value = "offset", defaultValue = "0") int offset) {
 
         if (username == null || username.isEmpty()) {
-//            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-//                    .body(new Error(401, 101, "Username header is missing."));
             throw new BadRequestException("Username header is missing.");
         }
 
         if (limit < 1 || limit > 100 || offset < 0) {
-//            return ResponseEntity.status(HttpStatus.PRECONDITION_FAILED)
-//                    .body(new Error(412, 103, "Limit or offset parameters are out of range."));
             throw new BadRequestException("Limit or offset parameters are out of range.");
         }
 
         if (hashTags != null) {
             for (String tag : hashTags) {
                 if (!tag.matches("^#[a-zA-Z0-9_]*$")) {
-//                    return ResponseEntity.badRequest()
-//                            .body(new Error(400, 104, "Invalid hashTag parameter."));
                     throw new BadRequestException("Invalid hash tag: " + tag);
                 }
             }
@@ -110,8 +78,6 @@ public class TweeterController {
         if (usernames != null) {
             for (String name : usernames) {
                 if (!name.matches("^[a-zA-Z0-9_]*$")) {
-//                    return ResponseEntity.badRequest()
-//                            .body(new Error(400, 105, "Invalid username parameter."));
                     throw new BadRequestException("Invalid username: " + name);
                 }
             }

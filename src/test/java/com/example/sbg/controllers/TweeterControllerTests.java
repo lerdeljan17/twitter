@@ -1,7 +1,7 @@
 package com.example.sbg.controllers;
 
-import com.example.sbg.api.models.Error;
 import com.example.sbg.api.models.PostTweetReq;
+import com.example.sbg.exceptions.BadRequestException;
 import com.example.sbg.model.Tweet;
 import com.example.sbg.services.ITweeterService;
 import org.junit.jupiter.api.Test;
@@ -13,8 +13,8 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDateTime;
 import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.util.AssertionErrors.assertEquals;
 
 @SpringBootTest
@@ -67,13 +67,8 @@ public class TweeterControllerTests {
         TweeterController controller = new TweeterController(tweeterService);
         PostTweetReq req = new PostTweetReq("Hello World!", List.of("#test"));
 
-        // Act
-        ResponseEntity<?> response = controller.createTweet("", req);
-
-        // Assert
-        assertEquals("", HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertInstanceOf(Error.class, response.getBody());
+        // Act & Assert
+        assertThrows(BadRequestException.class, () -> controller.createTweet("", req));
     }
 
     // Delete tweet fails with unauthorized status when username header is missing
@@ -83,13 +78,7 @@ public class TweeterControllerTests {
         ITweeterService tweeterService = Mockito.mock(ITweeterService.class);
         TweeterController controller = new TweeterController(tweeterService);
 
-        // Act
-        ResponseEntity<?> response = controller.deleteTweet("", "1");
-
-        // Assert
-        assertEquals("", HttpStatus.UNAUTHORIZED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertInstanceOf(Error.class, response.getBody());
+        // Act & Assert
+        assertThrows(BadRequestException.class, () -> controller.deleteTweet("", "1"));
     }
-
 }
