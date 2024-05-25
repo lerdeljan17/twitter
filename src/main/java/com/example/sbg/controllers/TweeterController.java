@@ -2,6 +2,7 @@ package com.example.sbg.controllers;
 
 import com.example.sbg.api.models.Error;
 import com.example.sbg.api.models.PostTweetReq;
+import com.example.sbg.api.models.TweetResp;
 import com.example.sbg.api.models.TweetsPageResp;
 import com.example.sbg.exceptions.BadRequestException;
 import com.example.sbg.mappers.TweetMapper;
@@ -29,7 +30,8 @@ public class TweeterController {
     }
 
     @PostMapping(produces = "application/json", path = "createTweet")
-    public ResponseEntity createTweet(@RequestHeader("X-Username") String username, @RequestBody PostTweetReq postTweetReq) {
+    public ResponseEntity<TweetResp> createTweet(@RequestHeader("X-Username") String username,
+                                                 @RequestBody PostTweetReq postTweetReq) {
 
         if (username == null || username.isEmpty()) {
             throw new BadRequestException("Username header is missing.");
@@ -43,7 +45,8 @@ public class TweeterController {
     }
 
     @DeleteMapping("/{tweetId}")
-    public ResponseEntity deleteTweet(@RequestHeader("X-Username") String username, @PathVariable String tweetId) {
+    public ResponseEntity<?> deleteTweet(@RequestHeader("X-Username") String username,
+                                         @PathVariable String tweetId) {
 
         if (username == null || username.isEmpty()) {
             throw new BadRequestException("Username header is missing.");
@@ -51,6 +54,7 @@ public class TweeterController {
 
 
         tweeterService.deleteTweet(Long.parseLong(tweetId), username);
+
         return ResponseEntity.ok().build();
 
     }
@@ -58,7 +62,7 @@ public class TweeterController {
     @Operation(summary = "Get Tweets", description = "Retrieve a list of tweets based on the provided parameters.")
     @ApiResponses(value = {@ApiResponse(responseCode = "200", description = "Successful retrieval of tweets", content = @Content(mediaType = "application/json", schema = @Schema(implementation = TweetsPageResp.class))), @ApiResponse(responseCode = "400", description = "Bad request", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "401", description = "Unauthorized", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))), @ApiResponse(responseCode = "412", description = "Precondition Failed", content = @Content(mediaType = "application/json", schema = @Schema(implementation = Error.class))),})
     @GetMapping(produces = "application/json")
-    public ResponseEntity getTweets(
+    public ResponseEntity<TweetsPageResp> getTweets(
             @RequestHeader("X-Username") String username,
             @RequestParam(value = "hashTag", required = false) List<String> hashTags,
             @RequestParam(value = "usernames", required = false) List<String> usernames,
