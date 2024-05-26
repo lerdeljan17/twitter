@@ -2,17 +2,19 @@ package com.example.sbg.model;
 
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.hibernate.proxy.HibernateProxy;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
 
 @Entity
 @Getter
 @Setter
-@ToString
 @RequiredArgsConstructor
 public class Tweet {
 
@@ -26,8 +28,13 @@ public class Tweet {
     @Column(nullable = false)
     private String content;
 
-    @ElementCollection
-    private List<String> hashtags;
+    @ManyToMany
+    @JoinTable(
+            name = "tweet_hashtag",
+            joinColumns = @JoinColumn(name = "tweet_id"),
+            inverseJoinColumns = @JoinColumn(name = "hashtag_id")
+    )
+    private Set<HashTag> hashtags = new HashSet<>();
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
@@ -48,5 +55,11 @@ public class Tweet {
     @Override
     public final int hashCode() {
         return this instanceof HibernateProxy ? ((HibernateProxy) this).getHibernateLazyInitializer().getPersistentClass().hashCode() : getClass().hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + "(" +
+                "id = " + id + ")";
     }
 }

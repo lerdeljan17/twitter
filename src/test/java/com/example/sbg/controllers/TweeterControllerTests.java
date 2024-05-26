@@ -2,6 +2,7 @@ package com.example.sbg.controllers;
 
 import com.example.sbg.api.models.PostTweetReq;
 import com.example.sbg.exceptions.BadRequestException;
+import com.example.sbg.model.HashTag;
 import com.example.sbg.model.Tweet;
 import com.example.sbg.services.ITweeterService;
 import org.junit.jupiter.api.Test;
@@ -12,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -32,7 +34,10 @@ public class TweeterControllerTests {
         tweet.setId(1L);
         tweet.setUsername("user");
         tweet.setContent("Hello World!");
-        tweet.setHashtags(List.of("#test"));
+        HashTag hashTag = new HashTag();
+        hashTag.setId(1L);
+        hashTag.setHashTag("#test");
+        tweet.setHashtags(Set.of(hashTag));
         tweet.setCreatedAt(LocalDateTime.now());
         Mockito.when(tweeterService.createTweet("user", "Hello World!", List.of("#test"))).thenReturn(tweet);
 
